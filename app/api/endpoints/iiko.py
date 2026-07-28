@@ -8,10 +8,6 @@ from app.db.session import get_db
 from app.services.iiko_service import IikoService
 from app.services.iiko_auth import get_iiko_server_auth_manager
 from pydantic import BaseModel
-from sqlalchemy import select
-from app.models.iiko_settings import IikoSettings
-from app.models.dish import Dish
-from app.models.price import Price
 from app.utils.logger import setup_logger
 
 router = APIRouter()
@@ -31,10 +27,10 @@ async def sync_iiko_menu(
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """Synchronize dishes and prices from iiko into local DB.
-    Requires admin auth.
+    Requires admin auth. Uses settings from DB only (no .env fallback).
     """
     try:
-        svc = IikoService()
+        svc = await IikoService.from_db(db)
         products = await svc.fetch_products()
         created_dishes, appended_prices = await svc.upsert_into_db(db, products)
         return {
@@ -53,26 +49,13 @@ async def list_iiko_products(
     current_admin: Annotated[object, Depends(get_current_admin)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    """List products from iiko using configured settings. Admin-only.
-    If iiko server settings exist in DB, use server mode with those credentials.
-    """
+    """List products from iiko using DB-stored settings only. Admin-only."""
     try:
         logger.info("GET /iiko/products invoked")
-        svc = IikoService()
-        # Try to load DB-stored server settings
-        result = await db.execute(select(IikoSettings).order_by(IikoSettings.id.asc()))
-        stored = result.scalars().first()
-        if stored and stored.active and stored.server_host and stored.server_login and stored.server_password:
-            logger.info("Using iikoServer settings from DB for products fetch")
-            svc.mode = "server"
-            svc.server_host = stored.server_host
-            svc.server_login = stored.server_login
-            svc.server_password = stored.server_password
-        else:
-            logger.info(f"Using iiko mode from environment: {svc.mode}")
+        svc = await IikoService.from_db(db)
         products = await svc.fetch_products()
         logger.info(f"Fetched {len(products)} products from iiko ({svc.mode})")
-        # Normalize fields first
+        # Normalize fields
         normalized: list[IikoProduct] = []
         for p in products:
             if isinstance(p, dict):
@@ -82,7 +65,10 @@ async def list_iiko_products(
 
         # Fallback: if price is missing or zero, try to use latest local price for matching dish name
         try:
-            # Build latest price map per dish id, and keep dishes list for fuzzy matching
+            from sqlalchemy import select
+            from app.models.dish import Dish
+            from app.models.price import Price
+
             dishes_result = await db.execute(select(Dish))
             all_dishes = dishes_result.scalars().all()
 
@@ -100,7 +86,6 @@ async def list_iiko_products(
             def norm(s: str) -> str:
                 return " ".join((s or "").lower().split())
 
-            # Apply fallback using fuzzy name match: equal, includes, or startswith
             for item in normalized:
                 val = item.price
                 if isinstance(val, (int, float)) and float(val) > 0.0:
@@ -120,7 +105,6 @@ async def list_iiko_products(
                     if matched:
                         latest = latest_by_id.get(d.id)
                         if latest:
-                            # Prefer longer match (to avoid overly generic matches)
                             match_len = max(len(dn), len(name_norm))
                             if best_price is None or match_len > best_len:
                                 best_price = float(latest[0])
@@ -132,7 +116,6 @@ async def list_iiko_products(
 
         return normalized
     except Exception as e:
-        # Sanitize errors
         msg = str(e)
         logger.error(f"Fetch products failed: {msg}")
         raise HTTPException(status_code=400, detail=f"Fetch products failed: {msg}")
@@ -141,15 +124,23 @@ async def list_iiko_products(
 @router.post("/logout")
 async def iiko_logout_endpoint(
     current_admin: Annotated[object, Depends(get_current_admin)],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """Explicitly logout from iikoServer to free license slot (server mode only).
-    Safe to call even if cloud mode is configured or no active session exists.
+    Safe to call even if no active session exists.
+    Uses settings from DB only.
     """
     try:
-        svc = IikoService()
-        if (svc.mode or "").lower() != "server":
+        svc = await IikoService.from_db(db)
+        if svc.mode != "server":
             return {"status": "skipped", "mode": svc.mode}
         mgr = get_iiko_server_auth_manager()
+        # Configure mgr from DB settings in case it's stale
+        result = await db.execute(select(IikoSettings).order_by(IikoSettings.id.asc()))
+        stored = result.scalars().first()
+        if stored:
+            from app.services.iiko_service import IikoSettings as IikoSettingsModel
+            mgr.configure(stored.server_host or "", stored.server_login or "", stored.server_password or "")
         ok = await mgr.logout()
         return {"status": "ok" if ok else "failed", "mode": "server"}
     except Exception as e:
@@ -163,29 +154,20 @@ async def test_iiko_connection(
     current_admin: Annotated[object, Depends(get_current_admin)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    """Lightweight connectivity test using configured settings. Admin-only.
-    - For cloud mode: verifies access token retrieval
-    - For server mode: verifies auth endpoint
+    """Lightweight connectivity test using DB-stored settings only.
+    No fallback to .env — if settings are missing or inactive, returns error.
     """
     logger.info("GET /iiko/test-connection invoked")
-    svc = IikoService()
-    # Load DB settings if present and active
-    result = await db.execute(select(IikoSettings).order_by(IikoSettings.id.asc()))
-    stored = result.scalars().first()
-    if stored and stored.active and stored.server_host and stored.server_login and stored.server_password:
-        logger.info("Using iikoServer settings from DB for connection test")
-        svc.mode = "server"
-        svc.server_host = stored.server_host
-        svc.server_login = stored.server_login
-        svc.server_password = stored.server_password
-    else:
-        logger.info(f"Using iiko mode from environment: {svc.mode}")
+    try:
+        svc = await IikoService.from_db(db)
+    except RuntimeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
     outcome = await svc.test_connection()
     if outcome.get("ok"):
         logger.info(f"iiko connection OK (mode={outcome.get('mode')})")
         return {"status": "ok", "mode": outcome.get("mode")}
     else:
-        # Return sanitized message
         msg = outcome.get("message") or "Connection failed"
         logger.error(f"iiko connection failed: {msg}")
         raise HTTPException(status_code=400, detail=msg)

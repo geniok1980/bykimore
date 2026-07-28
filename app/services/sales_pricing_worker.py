@@ -553,10 +553,14 @@ class SalesPricingWorker:
             await db.commit()
 
             try:
-                mode = (settings.IIKO_MODE or "cloud").lower()
-                if mode == "server":
-                    mgr = get_iiko_server_auth_manager()
-                    await mgr.logout()
+                async with self._db_session_factory() as db:
+                    from app.models.iiko_settings import IikoSettings
+                    result = await db.execute(select(IikoSettings).order_by(IikoSettings.id.asc()))
+                    stored = result.scalars().first()
+                    if stored and stored.active and stored.server_host:
+                        mgr = get_iiko_server_auth_manager()
+                        mgr.configure(stored.server_host, stored.server_login or "", stored.server_password or "")
+                        await mgr.logout()
             except Exception:
                 pass
 
@@ -604,9 +608,19 @@ class SalesPricingWorker:
             return {}
 
         session_key = mgr.get_session_key()
-        base = (settings.IIKO_SERVER_HOST or "").rstrip("/")
+        # Читаем host из БД, а не из .env
+        base = ""
+        try:
+            async with self._db_session_factory() as db:
+                from app.models.iiko_settings import IikoSettings
+                result = await db.execute(select(IikoSettings).order_by(IikoSettings.id.asc()))
+                stored = result.scalars().first()
+                if stored and stored.server_host:
+                    base = stored.server_host.rstrip("/")
+        except Exception:
+            pass
         if not base:
-            logger.error("IIKO_SERVER_HOST is not configured; cannot query OLAP by preset")
+            logger.error("IIKO_SERVER_HOST is not configured in DB settings; cannot query OLAP by preset")
             return {}
 
         # Нормализуем базовый URL: убираем завершающий '/resto'
@@ -978,9 +992,19 @@ class SalesPricingWorker:
             return rows_out
 
         session_key = mgr.get_session_key()
-        base = (settings.IIKO_SERVER_HOST or "").rstrip("/")
+        # Читаем host из БД, а не из .env
+        base = ""
+        try:
+            async with self._db_session_factory() as db:
+                from app.models.iiko_settings import IikoSettings
+                result = await db.execute(select(IikoSettings).order_by(IikoSettings.id.asc()))
+                stored = result.scalars().first()
+                if stored and stored.server_host:
+                    base = stored.server_host.rstrip("/")
+        except Exception:
+            pass
         if not base:
-            logger.error("IIKO_SERVER_HOST is not configured; cannot query OLAP by preset")
+            logger.error("IIKO_SERVER_HOST is not configured in DB settings; cannot query OLAP by preset")
             return rows_out
         if base.lower().endswith("/resto"):
             base = base[:-len("/resto")]
@@ -1279,9 +1303,20 @@ class SalesPricingWorker:
             await mgr.ensure_authenticated()
             session_key = mgr.get_session_key()
             client = await mgr.get_client()
-            base = (settings.IIKO_SERVER_HOST or "").rstrip("/")
+            # Читаем host из БД
+            base = ""
+            try:
+                async with self._db_session_factory() as db:
+                    from app.models.iiko_settings import IikoSettings
+                    from sqlalchemy import select
+                    result = await db.execute(select(IikoSettings).order_by(IikoSettings.id.asc()))
+                    stored = result.scalars().first()
+                    if stored and stored.server_host:
+                        base = stored.server_host.rstrip("/")
+            except Exception:
+                pass
             if not base:
-                logger.error("IIKO_SERVER_HOST is not configured; cannot push price to iikoServer")
+                logger.error("IIKO host not configured in DB settings; cannot push price to iikoServer")
                 return False
             if base.lower().endswith("/resto"):
                 base = base[:-len("/resto")]

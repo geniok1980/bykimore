@@ -68,24 +68,57 @@ class IikoService:
     """
 
     def __init__(self) -> None:
-        self.mode = (settings.IIKO_MODE or "cloud").lower()
-        self.base_url = settings.IIKO_BASE_URL.rstrip("/") if settings.IIKO_BASE_URL else ""
-        # Основной ключ из настроек. Если он отсутствует, попробуем алиас переменной окружения API_CLOUD
-        self.api_key = settings.IIKO_API_KEY
-        if not self.api_key:
-            try:
-                import os
-                alias_key = os.getenv("API_CLOUD")
-                if alias_key:
-                    self.api_key = alias_key
-                    logger.info("IikoService: using API_CLOUD env alias as IIKO_API_KEY")
-            except Exception:
-                # Безопасно игнорируем, просто остаёмся без ключа
-                pass
-        self.organization_id = settings.IIKO_ORGANIZATION_ID
-        self.server_host = settings.IIKO_SERVER_HOST
-        self.server_login = settings.IIKO_SERVER_LOGIN
-        self.server_password = settings.IIKO_SERVER_PASSWORD
+        self.mode: str = ""
+        self.base_url: str = ""
+        self.api_key: str | None = None
+        self.organization_id: str | None = None
+        self.server_host: str | None = None
+        self.server_login: str | None = None
+        self.server_password: str | None = None
+
+    def configure(
+        self,
+        *,
+        mode: str = "server",
+        base_url: str = "https://api-ru.iiko.services",
+        api_key: str | None = None,
+        organization_id: str | None = None,
+        server_host: str | None = None,
+        server_login: str | None = None,
+        server_password: str | None = None,
+    ) -> None:
+        """Configure service parameters. No fallback to .env — only what is passed explicitly."""
+        self.mode = mode.lower()
+        self.base_url = base_url.rstrip("/") if base_url else ""
+        self.api_key = api_key
+        self.organization_id = organization_id
+        self.server_host = server_host
+        self.server_login = server_login
+        self.server_password = server_password
+
+    @classmethod
+    async def from_db(cls, db: AsyncSession) -> "IikoService":
+        """Create an IikoService configured from IikoSettings in DB.
+        Raises RuntimeError if no active settings are found.
+        """
+        from app.models.iiko_settings import IikoSettings
+        from sqlalchemy import select
+        result = await db.execute(select(IikoSettings).order_by(IikoSettings.id.asc()))
+        stored = result.scalars().first()
+        if not stored or not stored.active:
+            raise RuntimeError("Настройки IIKO не найдены в БД или не активны")
+        if not stored.server_host or not stored.server_login or not stored.server_password:
+            raise RuntimeError("Неполные настройки IIKO: заполните host, login и пароль")
+        svc = cls()
+        svc.configure(
+            mode="server",
+            server_host=stored.server_host,
+            server_login=stored.server_login,
+            server_password=stored.server_password,
+        )
+        if stored.server_host:
+            svc.base_url = stored.server_host  # for _normalize_server_base
+        return svc
 
     def _normalize_server_base(self) -> str:
         """Normalize server host to a base URL suitable for iikoServer.

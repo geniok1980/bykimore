@@ -65,9 +65,20 @@ async def _run_sync(
     Возвращает словарь с результатами.
     """
     preset_id = settings.IIKO_OLAP_PRESET_ID
-    iiko_host = settings.IIKO_SERVER_HOST
+    # Читаем host из БД
+    iiko_host = ""
+    try:
+        async with db_session_factory() as db:
+            from app.models.iiko_settings import IikoSettings
+            from sqlalchemy import select
+            result = await db.execute(select(IikoSettings).order_by(IikoSettings.id.asc()))
+            stored = result.scalars().first()
+            if stored and stored.server_host:
+                iiko_host = stored.server_host.rstrip("/")
+    except Exception:
+        pass
     if not preset_id or not iiko_host:
-        return {"updated": 0, "total": 0, "error": "OLAP preset или IIKO_SERVER_HOST не настроены"}
+        return {"updated": 0, "total": 0, "error": "OLAP preset или host не настроены"}
 
     async with db_session_factory() as db:
         # 1. Получить все dish_settings с dish + product_id
@@ -259,8 +270,19 @@ async def sync_sales(
     preset_id = settings.IIKO_OLAP_PRESET_ID
     if not preset_id:
         raise HTTPException(status_code=400, detail="OLAP preset не настроен. Укажите IIKO_OLAP_PRESET_ID в .env")
-    if not settings.IIKO_SERVER_HOST:
-        raise HTTPException(status_code=400, detail="IIKO_SERVER_HOST не настроен")
+    # Читаем host из БД
+    iiko_host = ""
+    try:
+        from app.models.iiko_settings import IikoSettings
+        from sqlalchemy import select
+        result = await db.execute(select(IikoSettings).order_by(IikoSettings.id.asc()))
+        stored = result.scalars().first()
+        if stored and stored.server_host:
+            iiko_host = stored.server_host.rstrip("/")
+    except Exception:
+        pass
+    if not iiko_host:
+        raise HTTPException(status_code=400, detail="IIKO host не настроен. Заполните настройки интеграции")
 
     local_tz = _get_local_tz()
     now = dt.datetime.now(local_tz)

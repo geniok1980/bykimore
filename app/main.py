@@ -14,7 +14,6 @@ from app.db.session import async_engine
 from app.utils.logger import setup_logger
 from sqlalchemy import text
 from app.services.iiko_auth import get_iiko_server_auth_manager
-from app.core.config import settings as app_settings
 
 logger = setup_logger(__name__)
 
@@ -51,34 +50,6 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             # Логируем, но не падаем при ошибке миграции, чтобы сервер всё равно стартовал
             logger.error(f"Failed to run lightweight migration: {e}")
-
-    # Диагностика настроек на старте: режим IIKO и публичный URL вебхука
-    try:
-        logger.info(
-            "Startup config: IIKO_MODE=%s, IIKO_WEBHOOK_PUBLIC_URL=%s, STOPLIST_REFRESH_INTERVAL_MINUTES=%s",
-            (app_settings.IIKO_MODE or ""),
-            (app_settings.IIKO_WEBHOOK_PUBLIC_URL or ""),
-            str(app_settings.IIKO_STOPLIST_REFRESH_INTERVAL_MINUTES)
-        )
-    except Exception:
-        pass
-
-    # Initialize iikoServer authentication once at startup (persist session key/cookie)
-    try:
-        if (app_settings.IIKO_MODE or "cloud").lower() == "server":
-            base = (app_settings.IIKO_SERVER_HOST or "").rstrip("/")
-            login = app_settings.IIKO_SERVER_LOGIN
-            password = app_settings.IIKO_SERVER_PASSWORD
-            if base and login and password:
-                mgr = get_iiko_server_auth_manager()
-                mgr.configure(base, login, password)
-                await mgr.ensure_authenticated()
-                logger.info("iikoServer startup authentication completed successfully")
-            else:
-                logger.warning("iikoServer startup auth skipped: missing host/login/password in settings")
-    except Exception as e:
-        # Do not stop application; log error for diagnostics
-        logger.error(f"iikoServer startup authentication failed: {e}")
 
     yield
 
