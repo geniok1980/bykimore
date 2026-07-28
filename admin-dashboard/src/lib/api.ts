@@ -349,6 +349,7 @@ export type IikoSettingsRead = {
   server_login?: string | null;
   server_password?: string | null;
   active: boolean;
+  last_sync_at?: string | null;
 };
 
 export type IikoSettingsCreate = {

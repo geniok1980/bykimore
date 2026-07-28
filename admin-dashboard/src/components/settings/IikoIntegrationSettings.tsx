@@ -26,6 +26,8 @@ const IikoIntegrationSettings: React.FC = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<string | null>(null); // null=не проверяли, "ok"/"error"
+  const [lastSyncAt, setLastSyncAt] = useState<string | null>(null);
 
   const validateForm = () => {
     const newErrors = {
@@ -85,6 +87,18 @@ const IikoIntegrationSettings: React.FC = () => {
             serverLogin: s.server_login || "",
             serverPassword: s.server_password || "",
           });
+          // Проверим соединение с текущими настройками
+          if (s.server_host && s.server_login && s.server_password) {
+            try {
+              const res = await testIikoConnection();
+              setConnectionStatus(res.status === "ok" ? "ok" : "error");
+            } catch {
+              setConnectionStatus("error");
+            }
+          }
+          if (s.last_sync_at) {
+            setLastSyncAt(s.last_sync_at);
+          }
         }
       } catch (e) {
         console.warn("Не удалось загрузить iiko настройки:", e);
@@ -106,6 +120,13 @@ const IikoIntegrationSettings: React.FC = () => {
         active: true,
       });
       console.log("Сохранено:", saved);
+      // После сохранения проверим соединение
+      try {
+        const res = await testIikoConnection();
+        setConnectionStatus(res.status === "ok" ? "ok" : "error");
+      } catch {
+        setConnectionStatus("error");
+      }
       alert("Настройки успешно сохранены");
     } catch (error) {
       console.error("Ошибка при сохранении настроек:", error);
@@ -131,9 +152,11 @@ const IikoIntegrationSettings: React.FC = () => {
       });
       // Легковесный тест: бэкенд проверит доступность/авторизацию без утечки чувствительных данных
       const res = await testIikoConnection();
+      setConnectionStatus("ok");
       alert(`Соединение успешно (mode=${res.mode || 'unknown'})`);
     } catch (error) {
       console.error("Ошибка при тестировании соединения:", error);
+      setConnectionStatus("error");
       const msg = error instanceof Error ? (error.message || "Ошибка при тестировании соединения") : String(error);
       alert(msg);
     } finally {
@@ -217,13 +240,19 @@ const IikoIntegrationSettings: React.FC = () => {
         <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
           <p>
             <strong>Статус:</strong> 
-            <span className="ml-2 px-2 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-800">
-              Не подключено
+            <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
+              connectionStatus === "ok" 
+                ? "bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-400"
+                : connectionStatus === "error"
+                ? "bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-400"
+                : "bg-gray-100 dark:bg-gray-800"
+            }`}>
+              {connectionStatus === "ok" ? "Подключено" : connectionStatus === "error" ? "Ошибка" : "Не проверено"}
             </span>
           </p>
           
           <p>
-            <strong>Последняя синхронизация:</strong> Никогда
+            <strong>Последняя синхронизация:</strong> {lastSyncAt ? new Date(lastSyncAt).toLocaleString('ru-RU') : 'Никогда'}
           </p>
           
           <p>

@@ -33,6 +33,15 @@ async def sync_iiko_menu(
         svc = await IikoService.from_db(db)
         products = await svc.fetch_products()
         created_dishes, appended_prices = await svc.upsert_into_db(db, products)
+        # Обновляем дату последней синхронизации
+        from app.models.iiko_settings import IikoSettings
+        from sqlalchemy import select
+        from datetime import datetime, timezone
+        result = await db.execute(select(IikoSettings).order_by(IikoSettings.id.asc()))
+        stored = result.scalars().first()
+        if stored:
+            stored.last_sync_at = datetime.now(timezone.utc)
+            await db.commit()
         return {
             "status": "ok",
             "mode": svc.mode,

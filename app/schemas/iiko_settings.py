@@ -23,6 +23,7 @@ class IikoSettingsRead(BaseModel):
     server_login: Optional[str] = None
     server_password: Optional[str] = None
     active: bool
+    last_sync_at: Optional[str] = None
 
     class Config:
         from_attributes = True
