@@ -1,0 +1,649 @@
+/* Телевизионный дашборд - Основные стили */
+:root {
+  /* Настраиваемые высоты элементов интерфейса */
+  --tv-header-h: 60px; /* фактическая высота хедера */
+  --tv-footer-h: 60px; /* фактическая высота футера */
+  --tv-main-padding-vert: 2rem; /* верх/низ padding у .tv-main-content */
+  --tv-left-padding-vert: 3rem; /* верх/низ padding у .tv-left-panel (1.5rem * 2) */
+  --tv-controls-h: 52px; /* примерная высота панели фильтров */
+  --tv-controls-mb: 24px; /* margin-bottom: 1.5rem */
+  --tv-table-header-h: 50px; /* высота заголовка таблицы */
+}
+.tv-dashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow: hidden;
+}
+
+/* Заголовок дашборда */
+.tv-dashboard-header {
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 2px solid #ffd700;
+  padding: 1rem 2rem;
+  backdrop-filter: blur(10px);
+}
+
+.tv-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 100%;
+}
+
+.tv-main-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  margin: 0;
+}
+
+.tv-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.tv-refresh-btn {
+  background: linear-gradient(45deg, #ff6b35, #f7931e);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+}
+
+.tv-refresh-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+}
+
+.tv-time {
+  font-size: 1.2rem;
+  color: #ffd700;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Основной контент - разделение экрана */
+.tv-main-content {
+  display: flex;
+  /* учитываем высоту хедера, чтобы контент точно вписывался в экран */
+  height: calc(100vh - var(--tv-header-h) - var(--tv-footer-h));
+  gap: 1rem;
+  padding: 1rem;
+}
+
+/* Левая панель - Таблица */
+.tv-left-panel {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Правая панель - Видео */
+.tv-right-panel {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  overflow: hidden;
+}
+
+/* Панель управления */
+.tv-controls-bar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.tv-search-container {
+  flex: 1;
+  min-width: 300px;
+}
+
+.tv-search-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-size: 1.1rem;
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+}
+
+.tv-search-input:focus {
+  outline: none;
+  border-color: #ffd700;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.tv-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.tv-filter-container {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tv-filter-btn {
+  padding: 0.75rem 1.25rem;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+  white-space: nowrap;
+}
+
+.tv-filter-btn:hover {
+  background: rgba(255, 215, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+.tv-filter-btn.active {
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  color: #1a1a2e;
+  border-color: #ffd700;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+/* Таблица */
+.tv-table-container {
+  flex: 1;
+  /* предотвращаем появление горизонтальной прокрутки */
+  overflow: hidden;
+  overflow-x: hidden;
+  min-width: 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+}
+
+.tv-table-wrapper {
+  flex: 1;
+  /* даём запас на случай неточной оценки высот */
+  overflow-y: hidden;
+  overflow-x: hidden; /* скрываем горизонтальную полосу прокрутки внутри таблицы */
+  min-width: 0; /* позволяем дочерним элементам не вызывать горизонтальный оверфлоу */
+}
+
+.tv-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 100%;
+  border-collapse: collapse;
+  font-size: 1rem; /* компактнее шрифт для строк */
+  display: table;
+  table-layout: fixed;
+}
+
+.tv-table th {
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  color: #1a1a2e;
+  padding: 0.75rem; /* меньше отступ */
+  text-align: left;
+  font-weight: bold;
+  font-size: 1.2rem;
+  border-bottom: 2px solid rgba(255, 215, 0, 0.5);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 50px; /* ниже заголовок для увеличения видимой области таблицы */
+}
+
+/* Центрирование заголовков для колонок Цена и Курс */
+.tv-table th.price-column,
+.tv-table th.rate-column {
+  text-align: center;
+}
+
+/* Центрирование заголовка для колонки Блюдо */
+.tv-table th.dish-column {
+  text-align: center;
+}
+
+.tv-table tbody {
+  height: 100%;
+  display: table-row-group;
+}
+
+.tv-table td {
+  /* Компактные ячейки для размещения 13 строк */
+  padding: 0.1rem 0.2rem; /* ещё компактнее */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  vertical-align: middle;
+  line-height: 1.1;
+}
+
+/* Центрирование содержимого ячеек Цена и Курс */
+.tv-table td.price-cell,
+.tv-table td.rate-cell {
+  text-align: center;
+}
+
+/* Внутренние контейнеры цены и курса сделаем центрированными */
+.price-cell .price-info {
+  justify-content: center;
+}
+
+.rate-cell .rate-badge {
+  justify-content: center;
+}
+
+/* Адаптивная высота строк */
+.tv-table tbody tr {
+  /* рассчитываем высоту строки от доступной области внутри левой панели */
+  height: calc(
+    (
+      100vh - var(--tv-header-h) /* убираем хедер */
+      - var(--tv-footer-h) /* убираем футер */
+      - var(--tv-main-padding-vert) /* вертикальные паддинги main */
+      - var(--tv-left-padding-vert) /* вертикальные паддинги панели слева */
+      - var(--tv-controls-h) /* высота панели фильтров */
+      - var(--tv-controls-mb) /* отступ снизу у панели фильтров */
+      - var(--tv-table-header-h) /* высота заголовка таблицы */
+    ) / 13
+  );
+  min-height: 5px; /* ниже минимальная высота контейнера блюда */
+}
+
+/* Однострочная верстка ячеек */
+.dish-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dish-info.one-line {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.dish-emoji {
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.dish-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.price-info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.price-info.compact {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.current-price {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.price-change-inline {
+  font-size: 0.95rem;
+}
+
+.rate-badge.compact {
+  padding: 0;
+  background: transparent;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.tv-table tr:hover td {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.tv-table tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tv-table tr:nth-child(even):hover td {
+  background: rgba(255, 215, 0, 0.15);
+}
+
+/* Строки таблицы */
+.tv-table-row {
+  transition: all 0.3s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tv-table-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: scale(1.01);
+}
+
+.tv-table-row.even {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tv-table-row.odd {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Анимация подмигивания при изменении цены */
+.tv-table-row.price-changed {
+  animation: priceChangeBlink 2s ease-in-out;
+}
+
+@keyframes priceChangeBlink {
+  0% {
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 0 rgba(255, 215, 0, 0);
+  }
+  25% {
+    background: rgba(255, 215, 0, 0.3);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    transform: scale(1.02);
+  }
+  50% {
+    background: rgba(255, 215, 0, 0.2);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+  }
+  75% {
+    background: rgba(255, 215, 0, 0.1);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+  }
+  100% {
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 0 rgba(255, 215, 0, 0);
+    transform: scale(1);
+  }
+}
+
+/* Цены в таблице */
+.tv-price {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.tv-price-change {
+  font-weight: bold;
+  font-size: 1.2rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  display: inline-block;
+  min-width: 60px;
+  text-align: center;
+}
+
+.tv-price-change.positive {
+  color: #00ff88;
+  background: rgba(0, 255, 136, 0.1);
+}
+
+.tv-price-change.negative {
+  color: #ff4757;
+  background: rgba(255, 71, 87, 0.1);
+}
+
+.tv-price-change.neutral {
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.rate-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.rate-triangle {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.rate-value {
+  color: #ffffff;
+}
+
+/* Метка распродано рядом с названием блюда */
+.soldout-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 1.1rem; /* больше надпись */
+  font-weight: 800;
+  color: #fff;
+  background: #ff4757; /* красная метка */
+  border-radius: 8px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 10px rgba(255, 71, 87, 0.3);
+}
+
+/* Новая колонка для статуса распродано между ценой и курсом */
+.tv-table th.soldout-column {
+  text-align: center;
+  width: 1%; /* узкая, содержимое само задаст ширину */
+}
+
+.tv-table td.soldout-cell {
+  text-align: center;
+}
+
+.soldout-placeholder {
+  display: inline-block;
+  width: 1px; /* минимальное пространство, чтобы сохранялось выравнивание */
+}
+
+/* Скрываем цену/курс, сохраняя пространство для выравнивания */
+.hidden-price,
+.hidden-rate {
+  opacity: 0;
+}
+
+/* Видео область */
+.tv-video-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tv-video-header {
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  color: #1a1a2e;
+  padding: 1rem;
+  font-weight: bold;
+  font-size: 1.2rem; /* Выравниваем с заголовком таблицы */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 60px; /* Такая же высота как у заголовка таблицы */
+  box-sizing: border-box;
+}
+
+.tv-video-live {
+  background: #ff4757;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.tv-video-content {
+  flex: 1;
+  position: relative; /* даём абсолютным детям (видео, плейсхолдеру, оверлеям) заполнять контейнер */
+  display: block;
+  background: linear-gradient(45deg, #2c3e50, #34495e);
+  color: #ecf0f1;
+  font-size: 1.5rem;
+  text-align: center;
+  padding: 0; /* убираем внутренние отступы, чтобы видео занимало всю площадь */
+}
+
+/* Видео заполняет весь контейнер и красиво масштабируется */
+.tv-video-content video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* можно заменить на contain, если важны края без обрезки */
+  display: block;
+}
+
+/* Плейсхолдер по центру, когда видео недоступно */
+.tv-video-content .video-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 1rem;
+}
+
+.tv-video-controls {
+  background: rgba(0, 0, 0, 0.8);
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.tv-video-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.tv-video-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Нижняя панель */
+.tv-footer {
+  background: rgba(0, 0, 0, 0.5);
+  border-top: 2px solid #ffd700;
+  padding: 1rem 2rem;
+  backdrop-filter: blur(10px);
+}
+
+.tv-footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+
+.tv-stats {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.tv-stat-item {
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 1.1rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.tv-ticker {
+  flex: 1;
+  overflow: hidden;
+  background: rgba(255, 215, 0, 0.1);
+  border-radius: 20px;
+  padding: 0.5rem;
+}
+
+.ticker-content {
+  color: #ffd700;
+  font-weight: bold;
+  white-space: nowrap;
+  animation: ticker 30s linear infinite;
+}
+
+@keyframes ticker {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* Адаптивность для больших экранов */
+@media (min-width: 1920px) {
+  .tv-main-title {
+    font-size: 3rem;
+  }
+  
+  .tv-table {
+    font-size: 1.3rem;
+  }
+  
+  .tv-table th {
+    font-size: 1.4rem;
+    /* уменьшаем паддинги заголовка, чтобы сохранить видимость 13 строк */
+    padding: 0.75rem;
+  }
+  
+  .tv-table td {
+    /* не увеличиваем паддинг для ячеек на больших экранах, чтобы влезли 13 строк */
+    padding: 0.2rem;
+  }
+}
+
+/* Скроллбар */
+.tv-table-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tv-table-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.tv-table-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 215, 0, 0.5);
+  border-radius: 4px;
+}
+
+.tv-table-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 215, 0, 0.7);
+}

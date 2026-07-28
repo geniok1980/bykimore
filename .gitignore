@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+venv/
+.venv/
+env/
+
+# Node
+node_modules/
+.next/
+out/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Storage (SQLite DB — create on deploy)
+storage/
+!storage/.gitkeep
+
+# Logs
+*.log
+*.debug
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+/app/__pycache__/
+admin-dashboard/.next/
+admin-dashboard/node_modules/
+
+# Корневые db/logs
+app.db
+*.log
+debug_stream.py

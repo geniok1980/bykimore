@@ -1,0 +1,80 @@
+services:
+  # FastAPI Backend
+  backend:
+    image: python:3.12-slim
+    container_name: iiko_backend
+    env_file:
+      - .env
+    environment:
+      # Database (sqlite, т.к. Postgres не используется)
+      SQLALCHEMY_DATABASE_URI: sqlite:////app/storage/app.db
+      PYTHONPATH: /app
+      PIP_NO_CACHE_DIR: 1
+      
+      # API Keys отключены (не используются)
+      
+      # JWT
+      SECRET_KEY: ${SECRET_KEY:-your-super-secret-key-change-in-production}
+      ACCESS_TOKEN_EXPIRE_MINUTES: 83200
+      
+      # LangSmith отключён
+      
+      # App settings
+      API_V1_STR: /api/v1
+      PROJECT_NAME: "IIKO Admin"
+      # Разрешить CORS для фронтенда через домен
+      BACKEND_CORS_ORIGINS: '["http://89.34.219.217:3100","http://64.188.65.222:3100","https://bullandsea.rkdash.com"]'
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+      # Локальная таймзона для воркера продаж
+      LOCAL_TIMEZONE: Europe/Moscow
+      
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./app:/app/app
+      - ./storage:/app/storage
+      - ./requirements.txt:/app/requirements.txt:ro
+    healthcheck:
+      # curl отсутствует в python:3.12-slim, используем стандартный python
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys;\nimport json;\n\ntry:\n  r=urllib.request.urlopen('http://localhost:8000/health',timeout=5);\n  d=json.loads(r.read().decode());\n  sys.exit(0 if d.get('status')=='ok' else 1)\nexcept Exception:\n  sys.exit(1)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - iiko_network
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "pip install --no-cache-dir -r /app/requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  # Next.js Frontend
+  frontend:
+    image: node:18-alpine
+    container_name: iiko_frontend
+    environment:
+      # Публичный URL для браузера (прямой доступ по порту)
+      NEXT_PUBLIC_API_URL: http://64.188.65.222:8001/api/v1
+      # Внутренний URL для серверных вызовов фронта
+      BACKEND_URL: http://backend:8000/api/v1
+      NODE_ENV: production
+    ports:
+      - "3100:3000"
+    working_dir: /app
+    volumes:
+      - ./admin-dashboard:/app
+    command: sh -c "npm ci --omit=dev && npm run build && npm run start"
+    depends_on:
+      - backend
+    healthcheck:
+      # В alpine может не быть curl, используем node с fetch
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - iiko_network
+    restart: unless-stopped
+
+
+networks:
+  iiko_network:
+    driver: bridge

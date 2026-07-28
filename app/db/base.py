@@ -1,0 +1,9 @@
+from app.db.base_class import Base  # noqa
+from app.models.user import User  # noqa
+from app.models.dish import Dish  # noqa
+from app.models.price import Price  # noqa
+from app.models.rate import Rate  # noqa
+from app.models.dish_settings import DishSettings  # noqa
+from app.models.stream_settings import StreamSettings  # noqa
+from app.models.iiko_settings import IikoSettings  # noqa
+from app.models.price_change_state import PriceChangeState  # noqa

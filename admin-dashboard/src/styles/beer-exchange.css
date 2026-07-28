@@ -1,0 +1,185 @@
+/* Beer Exchange Theme Styles */
+.beer-exchange-container {
+  background: linear-gradient(135deg, #fef3c7 0%, #f59e0b 100%);
+  min-height: 100vh;
+}
+
+.beer-exchange-card {
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+.beer-exchange-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(245, 158, 11, 0.2);
+  border-color: #f59e0b;
+}
+
+.beer-exchange-stats {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  color: white;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.beer-exchange-header {
+  background: rgba(31, 41, 55, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  color: white;
+}
+
+.beer-exchange-title {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.beer-exchange-subtitle {
+  text-align: center;
+  color: #6b7280;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+}
+
+.price-positive {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.price-negative {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.beer-category-badge {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.beer-rating-stars {
+  color: #fbbf24;
+  font-size: 1rem;
+}
+
+.beer-exchange-search {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  padding: 12px 16px;
+  transition: all 0.3s ease;
+}
+
+.beer-exchange-search:focus {
+  outline: none;
+  border-color: #d97706;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+}
+
+.beer-exchange-filter-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid #e5e7eb;
+  color: #374151;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.beer-exchange-filter-btn:hover,
+.beer-exchange-filter-btn.active {
+  background: #f59e0b;
+  border-color: #f59e0b;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.beer-exchange-refresh-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.beer-exchange-refresh-btn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+}
+
+.beer-exchange-about {
+  background: rgba(31, 41, 55, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 24px;
+  margin-top: 32px;
+  color: white;
+}
+
+.beer-exchange-about h3 {
+  color: #f59e0b;
+  margin-bottom: 16px;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.beer-exchange-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+@media (max-width: 768px) {
+  .beer-exchange-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .beer-exchange-title {
+    font-size: 2rem;
+  }
+  
+  .beer-exchange-stats {
+    padding: 16px;
+  }
+}
+
+/* Animation for loading states */
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.beer-exchange-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+}

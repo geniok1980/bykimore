@@ -1,0 +1,371 @@
+/* БЫК И МОРЕ — Счётчик стейков (full-screen) */
+
+.bs-root {
+  --bs-bg: #050506;
+  --bs-bg-soft: #0d0b0a;
+  --bs-gold: #b6976c;
+  --bs-gold-deep: #b6976c;
+  --bs-cream: #e5d9b0;
+  --bs-red: #7e1d1e;
+  --bs-red-deep: #7e1d1e;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background: var(--bs-bg);
+  color: var(--bs-cream);
+  font-family: system-ui, -apple-system, sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ===== BACKDROP ===== */
+.bs-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 30% 45%, var(--bs-bg-soft) 0%, var(--bs-bg) 62%);
+}
+
+.bs-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(110% 80% at 50% 50%, transparent 45%, rgba(0, 0, 0, 0.75) 100%);
+}
+
+/* ===== HEADER ===== */
+.bs-header {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 2rem;
+  padding: 2.25rem 4rem 1rem;
+  flex-shrink: 0;
+}
+
+.bs-header-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.9rem;
+  /* ширина по содержимому (логотипу), а не по всей grid-ячейке */
+  width: fit-content;
+  padding-top: 0;
+  flex-shrink: 0;
+}
+
+.bs-logo-img {
+  width: clamp(230px, 26vw, 420px);
+  height: auto;
+  filter: drop-shadow(0 6px 24px rgba(0, 0, 0, 0.8));
+}
+
+.bs-tagline {
+  /* плашка по центру логотипа, а не по левому краю колонки */
+  align-self: center;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #b6976c;
+  padding: 0.4rem 1rem;
+  border: 1px solid rgba(183, 151, 108, 0.35);
+  border-radius: 999px;
+  background: rgba(183, 151, 108, 0.06);
+}
+
+.bs-header-right {
+  text-align: left;
+  padding-top: 0;
+  min-width: 0;
+}
+
+.bs-counter-head {
+  /*
+   * Кегль привязан к высоте САМИХ БУКВ «БЫК И МОРЕ» внутри логотипа, а не к
+   * высоте всей картинки. В logo-bull-and-sea.png (1011x249) строка занимает
+   * ряды 21..141 → 121px, т.е. 121 / 1011 = 0.1197 от ширины лого.
+   * Cap-height системных гротесков ≈ 0.71em, поэтому
+   *   font-size = 0.1197 / 0.71 * ширина_лого = 0.1686 * ширина_лого.
+   * Ширина .bs-logo-img = clamp(230px, 26vw, 420px) → те же три ветки clamp.
+   */
+  /*
+   * Верхняя граница кегля ограничена не лого, а шириной строки: «СЧЁТЧИК
+   * СТЕЙКОВ» в начертании 400 занимает ~9.8em (Arial/Helvetica) … 10.1em
+   * (DejaVu Sans) вместе с letter-spacing. При max-width: 680px это даёт
+   * потолок ~67px; берём 62px с запасом на более широкие системные шрифты.
+   */
+  font-size: clamp(38.8px, 4.38vw, 62px);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  /* не шире плашек .bs-card; строка всегда в одну линию */
+  max-width: 680px;
+  white-space: nowrap;
+  /* строка одна — лидинг только под выравнивание с лого */
+  line-height: 1.15;
+  /* коробка по левому краю плашки со счётчиком */
+  margin: 0;
+  text-align: left;
+  /* верх заглавных букв ≈ 0.21em ниже верха строки, а буквы лого — 0.12em
+     ниже верха картинки; поднимаем текст на разницу */
+  margin-top: -0.09em;
+  text-transform: uppercase;
+  color: #b6976c;
+}
+
+.bs-counter-sub {
+  /* строка по левому краю плашки, а не по правому краю колонки */
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--bs-gold-deep);
+  margin-top: 0.45rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.bs-live-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--bs-red);
+  animation: bs-pulse-dot 2s ease-in-out infinite;
+}
+
+/* ===== MAIN ===== */
+.bs-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  align-items: center;
+  gap: 2rem;
+  padding: 0 4rem 1.5rem;
+  min-height: 0;
+}
+
+/* --- Бык --- */
+.bs-bull-col {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  height: 100%;
+}
+
+.bs-bull-img {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 24px 40px rgba(0, 0, 0, 0.75));
+}
+
+/* --- Карточки --- */
+.bs-cards-col {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+/* Декор правой части — водяной знак под карточками */
+.bs-right-decor {
+  position: absolute;
+  top: 50%;
+  right: -6%;
+  width: 115%;
+  height: auto;
+  transform: translateY(-50%);
+  z-index: -1;
+  opacity: 0.06;
+  pointer-events: none;
+  user-select: none;
+}
+
+.bs-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  /* уже по ширине, выше по высоте */
+  width: 100%;
+  max-width: 680px;
+  padding: 2.5rem 1.75rem;
+  border: 1px solid rgba(183, 151, 108, 0.9);
+  border-radius: 1.25rem;
+  background: linear-gradient(145deg, rgba(23, 18, 14, 0.92) 0%, rgba(9, 9, 11, 0.92) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(183, 151, 108, 0.12),
+    0 18px 45px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.bs-card-body {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+/* Правая колонка карточки: иконка сверху, единица измерения снизу */
+.bs-card-aside {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.bs-card-icon {
+  width: clamp(56px, 6vw, 92px);
+  height: auto;
+}
+
+.bs-card-num {
+  font-size: clamp(3rem, 6vw, 5.5rem);
+  line-height: 1;
+  font-weight: 900;
+  /* больше воздуха между цифрами в числе */
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  color: #b6976c;
+}
+
+.bs-card-num-sm {
+  font-size: clamp(2.4rem, 4.5vw, 4.5rem);
+}
+
+.bs-card-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--bs-gold-deep);
+  margin-bottom: 0.35rem;
+}
+
+.bs-card-unit {
+  font-size: clamp(1.1rem, 1.6vw, 1.6rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #b6976c;
+  text-align: center;
+}
+
+/* Separator */
+.bs-sep {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 680px;
+  align-self: center;
+  padding: 0 0.5rem;
+}
+
+.bs-sep-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(183, 151, 108, 0.9), transparent);
+}
+
+.bs-sep-mark {
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--bs-red);
+}
+
+/* ===== FOOTER ===== */
+.bs-footer {
+  flex-shrink: 0;
+  text-align: center;
+  padding: 1rem 4rem 1.75rem;
+}
+
+.bs-footer-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--bs-gold-deep);
+}
+
+.bs-footer-dot {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--bs-red);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes bs-pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bs-live-dot {
+    animation: none;
+  }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1280px) {
+  .bs-header { padding: 1.75rem 2.5rem 1rem; }
+  .bs-main { padding: 0 2.5rem 1.25rem; gap: 1.5rem; }
+  .bs-footer { padding: 1rem 2.5rem 1.5rem; }
+}
+
+@media (max-width: 900px) {
+  .bs-root { overflow: visible; }
+  .bs-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 2rem 1.25rem 0.5rem;
+    text-align: center;
+  }
+  .bs-header-left { align-items: center; }
+  .bs-header-right { text-align: center; }
+  .bs-counter-sub { justify-content: center; }
+  /* в столбик выравнивать по одной линии не нужно — возвращаем обычный поток */
+  .bs-counter-head {
+    font-size: clamp(1.5rem, 6.5vw, 3.25rem);
+    white-space: normal;
+    letter-spacing: 0.04em;
+    line-height: 1.05;
+    margin-top: 0;
+    /* колонка по центру — коробку тоже центрируем, а не прижимаем вправо */
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .bs-main {
+    grid-template-columns: 1fr;
+    padding: 0 1.25rem 1.5rem;
+    gap: 1.5rem;
+  }
+  .bs-bull-col { min-height: 32vh; }
+  .bs-right-decor { width: 100%; right: 0; opacity: 0.05; }
+  .bs-card { padding: 1.75rem 1.25rem; gap: 1rem; }
+  .bs-footer { padding: 0.5rem 1.25rem 1.5rem; }
+  .bs-footer-text {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.16em;
+  }
+}
