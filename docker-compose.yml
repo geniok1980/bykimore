@@ -6,24 +6,20 @@ services:
     env_file:
       - .env
     environment:
-      # Database (sqlite, т.к. Postgres не используется)
+      # Database (sqlite)
       SQLALCHEMY_DATABASE_URI: sqlite:////app/storage/app.db
       PYTHONPATH: /app
       PIP_NO_CACHE_DIR: 1
-      
-      # API Keys отключены (не используются)
       
       # JWT
       SECRET_KEY: ${SECRET_KEY:-your-super-secret-key-change-in-production}
       ACCESS_TOKEN_EXPIRE_MINUTES: 83200
       
-      # LangSmith отключён
-      
       # App settings
       API_V1_STR: /api/v1
       PROJECT_NAME: "IIKO Admin"
-      # Разрешить CORS для фронтенда через домен
-      BACKEND_CORS_ORIGINS: '["http://89.34.219.217:3100","http://64.188.65.222:3100","https://bullandsea.rkdash.com"]'
+      # CORS — из .env или дефолт
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-["http://localhost:3100","http://localhost:3000"]}
       PIP_DISABLE_PIP_VERSION_CHECK: "1"
       # Локальная таймзона для воркера продаж
       LOCAL_TIMEZONE: Europe/Moscow
@@ -51,8 +47,8 @@ services:
     image: node:18-alpine
     container_name: iiko_frontend
     environment:
-      # Публичный URL для браузера (прямой доступ по порту)
-      NEXT_PUBLIC_API_URL: http://64.188.65.222:8001/api/v1
+      # Публичный URL для браузера — из .env или дефолт
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8001/api/v1}
       # Внутренний URL для серверных вызовов фронта
       BACKEND_URL: http://backend:8000/api/v1
       NODE_ENV: production
