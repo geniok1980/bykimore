@@ -296,7 +296,8 @@ export default function SettingsCard({ modalProps }: { modalProps: ModalProps })
   const handleStartAutoSync = async () => {
     setAutoSyncLoading(true);
     try {
-      const st = await startAutoSync(syncDateFrom);
+      // Без date_from — backend возьмёт IIKO_SYNC_START_DATE (дата открытия ресторана)
+      const st = await startAutoSync();
       setAutoSyncEnabled(st.enabled);
       setAutoSyncDateFrom(st.date_from || "");
       setAutoSyncTaskRunning(st.task_running);
@@ -341,6 +342,14 @@ export default function SettingsCard({ modalProps }: { modalProps: ModalProps })
             disabled={!isAdmin || syncLoading}
           >
             {syncLoading ? "Синхронизация…" : "Синхронизировать продажи"}
+          </Button>
+          <Button
+            size="sm"
+            variant={autoSyncEnabled ? "outline" : "primary"}
+            onClick={autoSyncEnabled ? handleStopAutoSync : handleStartAutoSync}
+            disabled={!isAdmin || autoSyncLoading}
+          >
+            {autoSyncLoading ? "Подождите…" : autoSyncEnabled ? "Выключить автосинхронизацию" : "Включить автосинхронизацию"}
           </Button>
           <Button
             size="sm"

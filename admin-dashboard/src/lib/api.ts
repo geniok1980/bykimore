@@ -197,11 +197,11 @@ export async function deleteDish(dishId: number): Promise<void> {
 }
 
 // Создание блюда (админ). Можно передать начальную цену/курс.
-export async function createDish(args: { name: string; initial_price?: number | null; initial_rate?: number | null }): Promise<Dish> {
-  const { name, initial_price = null, initial_rate = null } = args;
+export async function createDish(args: { name: string; product_id?: string | null; initial_price?: number | null; initial_rate?: number | null }): Promise<Dish> {
+  const { name, product_id = null, initial_price = null, initial_rate = null } = args;
   return request<Dish>(`/dishes`, {
     method: "POST",
-    body: JSON.stringify({ name, initial_price, initial_rate }),
+    body: JSON.stringify({ name, product_id, initial_price, initial_rate }),
   });
 }
 
@@ -434,8 +434,9 @@ export type AutoSyncStatus = {
   task_running: boolean;
 };
 
-export async function startAutoSync(dateFrom: string): Promise<AutoSyncStatus> {
-  return request<AutoSyncStatus>(`/bull-and-sea/auto-sync/start?date_from=${encodeURIComponent(dateFrom)}`, {
+export async function startAutoSync(dateFrom?: string): Promise<AutoSyncStatus> {
+  const qs = dateFrom ? `?date_from=${encodeURIComponent(dateFrom)}` : "";
+  return request<AutoSyncStatus>(`/bull-and-sea/auto-sync/start${qs}`, {
     method: "POST",
   });
 }
