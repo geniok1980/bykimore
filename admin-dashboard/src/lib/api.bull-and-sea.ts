@@ -2,7 +2,7 @@ import { request } from "./api";
 
 export type BullAndSeaStats = {
   total_pieces: number;
-  total_weight_kg: number;
+  total_weight_tons: number;
 };
 
 export async function getBullAndSeaStats(): Promise<BullAndSeaStats> {

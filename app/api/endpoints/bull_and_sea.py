@@ -336,13 +336,13 @@ async def bull_and_sea_stats(
     res = await db.execute(select(DishSettings).where(DishSettings.active == True))
     rows = res.scalars().all()
     total_pieces = 0
-    total_weight_kg = 0.0
+    total_weight_tons = 0.0
     for s in rows:
         qty = s.sales_quantity or 0
         weight = s.weight_grams or 0
         total_pieces += qty
-        total_weight_kg += qty * (weight / 1000.0)
-    return {"total_pieces": total_pieces, "total_weight_kg": round(total_weight_kg, 1)}
+        total_weight_tons += qty * (weight / 1_000_000.0)
+    return {"total_pieces": total_pieces, "total_weight_tons": round(total_weight_tons, 3)}
 
 
 @router.post("/sync-sales")

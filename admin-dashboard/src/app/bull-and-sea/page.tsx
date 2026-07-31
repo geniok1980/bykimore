@@ -48,11 +48,11 @@ export default function BullAndSeaPage() {
 
   const fmt = (n: number) => new Intl.NumberFormat("ru-RU").format(n);
   const fmtTons = (n: number) =>
-    new Intl.NumberFormat("ru-RU", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(n);
+    new Intl.NumberFormat("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 
   // Если данные ещё не загрузились — показываем прочерки
   const totalPieces = stats?.total_pieces ?? null;
-  const totalTons = stats?.total_weight_kg ?? null;
+  const totalTons = stats?.total_weight_tons ?? null;
 
   return (
     <div className="bs-root">
