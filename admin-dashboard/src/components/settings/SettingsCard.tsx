@@ -169,28 +169,34 @@ export default function SettingsCard({ modalProps }: { modalProps: ModalProps })
       try {
         let selectedDish = dishes.find(d => d.name === dishName) || dishes.find(d => d.id === currentItem.dishId) || null;
         if (!selectedDish) {
-          // Если блюдо не выбрано из выпадающего списка — ищем точное совпадение по имени среди iiko-продуктов
-          // (чтобы «Сохранить» срабатывало с первого раза, даже если пользователь просто ввёл название)
+          // Блюдо не в списке — определяем product_id из iiko:
+          // 1) выбранный из выпадающего списка продукт (если выбор зафиксировался),
+          // 2) иначе — единственное точное совпадение по имени среди iiko-продуктов
+          //    (страховка, если первый клик по варианту списка не зафиксировался),
+          // 3) если в iiko такого блюда нет — создаём по имени без product_id (product_id останется пустым).
           const normName = dishName.trim().toLowerCase();
-          const matches = iikoProducts.filter((p) => (p.name || "").trim().toLowerCase() === normName);
           let product = selectedIikoProduct;
-          if (!product && matches.length === 1) {
-            product = matches[0];
-            setSelectedIikoProduct(product);
+          if (!product || (product.name || "").trim().toLowerCase() !== normName) {
+            const matches = iikoProducts.filter((p) => (p.name || "").trim().toLowerCase() === normName);
+            if (matches.length === 1) {
+              product = matches[0];
+              setSelectedIikoProduct(product);
+            }
           }
-          if (product && (product.name || "").trim().toLowerCase() === normName) {
-            const created = await createDish({
-              name: product.name || dishName,
-              product_id: product.id ?? null,
-              initial_price: product.price ?? undefined,
-            });
-            selectedDish = created;
-            setDishes(prev => [...prev, created]);
-          }
+          const productId =
+            product && (product.name || "").trim().toLowerCase() === normName
+              ? product.id ?? null
+              : null;
+          const created = await createDish({
+            name: dishName,
+            product_id: productId,
+            initial_price: product?.price ?? undefined,
+          });
+          selectedDish = created;
+          setDishes(prev => [...prev, created]);
         }
         if (!selectedDish) {
-          const manyMatches = iikoProducts.filter((p) => (p.name || "").trim().toLowerCase() === dishName.trim().toLowerCase()).length > 1;
-          setErrors((prev: typeof errors) => ({ ...prev, dish: manyMatches ? "Найдено несколько блюд — выберите нужное из списка" : "Выберите блюдо из списка или из iiko" }));
+          setErrors((prev: typeof errors) => ({ ...prev, dish: "Выберите блюдо из списка или из iiko" }));
           return;
         }
         const updated = await upsertBeerExchangeSettings({
@@ -551,7 +557,7 @@ export default function SettingsCard({ modalProps }: { modalProps: ModalProps })
                           clearError('dish');
                         }}
                       />
-                      <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                      <Combobox.Options className="z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-800">
                         {(dishQuery.trim() ? iikoProducts.filter((p) => {
                           const q = dishQuery.trim().toLowerCase();
                           const name = (p.name || "").toLowerCase();
