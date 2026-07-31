@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import "@/styles/bull-and-sea.css";
 import { getBullAndSeaStats, BullAndSeaStats } from "@/lib/api.bull-and-sea";
@@ -8,6 +8,10 @@ import { getBullAndSeaStats, BullAndSeaStats } from "@/lib/api.bull-and-sea";
 export default function BullAndSeaPage() {
   const [stats, setStats] = useState<BullAndSeaStats | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Анимация при росте счётчика
+  const prevPiecesRef = useRef<number | null>(null);
+  const [bump, setBump] = useState(false);
+  const [delta, setDelta] = useState(0);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -24,6 +28,23 @@ export default function BullAndSeaPage() {
     const interval = setInterval(fetchStats, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Следим за ростом счётчика и включаем анимацию
+  useEffect(() => {
+    if (stats?.total_pieces == null) return;
+    const prev = prevPiecesRef.current;
+    if (prev !== null && stats.total_pieces > prev) {
+      setDelta(stats.total_pieces - prev);
+      setBump(true);
+    }
+    prevPiecesRef.current = stats.total_pieces;
+  }, [stats?.total_pieces]);
+
+  useEffect(() => {
+    if (!bump) return;
+    const t = setTimeout(() => setBump(false), 1800);
+    return () => clearTimeout(t);
+  }, [bump]);
 
   const fmt = (n: number) => new Intl.NumberFormat("ru-RU").format(n);
   const fmtTons = (n: number) =>
@@ -79,7 +100,14 @@ export default function BullAndSeaPage() {
         <div className="bs-cards-col">
           <div className="bs-card">
             <div className="bs-card-body">
-              <div className="bs-card-num">{totalPieces !== null ? fmt(totalPieces) : "—"}</div>
+              <div className={`bs-card-num ${bump ? "bs-card-num-bump" : ""}`}>
+                {totalPieces !== null ? fmt(totalPieces) : "—"}
+              </div>
+              {bump && delta > 0 && (
+                <div className="bs-bump-badge" key={String(stats?.total_pieces)}>
+                  +{fmt(delta)}
+                </div>
+              )}
             </div>
             <div className="bs-card-aside">
               <Image

@@ -242,6 +242,64 @@
   font-size: clamp(2.4rem, 4.5vw, 4.5rem);
 }
 
+/* Вспышка при росте счётчика стейков */
+@keyframes bs-bump {
+  0% {
+    transform: scale(1);
+    color: #b6976c;
+    text-shadow: none;
+  }
+  30% {
+    transform: scale(1.16);
+    color: #ffd700;
+    text-shadow: 0 0 34px rgba(255, 215, 0, 0.85);
+  }
+  100% {
+    transform: scale(1);
+    color: #b6976c;
+    text-shadow: none;
+  }
+}
+
+.bs-card-num-bump {
+  display: inline-block;
+  animation: bs-bump 1.6s ease-out;
+}
+
+/* Бейдж «+N» при увеличении счётчика */
+@keyframes bs-badge-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(0) scale(1.15);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.9);
+  }
+}
+
+.bs-bump-badge {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #ffd700;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  border-radius: 999px;
+  padding: 0.15rem 0.75rem;
+  animation: bs-badge-pop 1.8s ease-out forwards;
+}
+
 .bs-card-label {
   font-size: 0.75rem;
   font-weight: 600;
