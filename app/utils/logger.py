@@ -3,7 +3,7 @@ import sys
 
 
 def setup_logger(name: str) -> logging.Logger:
-    numeric_level = logging.WARNING
+    numeric_level = logging.INFO
 
     logger = logging.getLogger(name)
     logger.setLevel(numeric_level)
