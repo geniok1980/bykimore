@@ -195,7 +195,13 @@ async def _read_today_sales(app, today, date_to) -> dict[int, int]:
         nm = (dish.name or "").strip().lower()
         if nm:
             dish_name_to_id[nm] = dish.id
-    return await _fetch_sales_map(client, base, session_key, preset_id, today, date_to, dish_name_to_id)
+    sales_map = await _fetch_sales_map(client, base, session_key, preset_id, today, date_to, dish_name_to_id)
+    # Освобождаем токен iikoServer после операции (лимит одновременных сессий)
+    try:
+        await mgr.logout()
+    except Exception as e:
+        logger.warning("auto-sync: ошибка logout: %s", e)
+    return sales_map
 
 
 async def _run_sync(
@@ -300,6 +306,12 @@ async def _run_sync(
                 updated_count += 1
 
         await db.commit()
+
+        # Освобождаем токен iikoServer после операции (лимит одновременных сессий)
+        try:
+            await mgr.logout()
+        except Exception as e:
+            logger.warning("Ошибка logout iikoServer после синхронизации: %s", e)
 
         return {
             "updated": updated_count,
