@@ -13,7 +13,7 @@ from app.schemas.rate import RateCreate, RateRead
 router = APIRouter()
 
 
-@router.get("/", response_model=list[RateRead])
+@router.get("", response_model=list[RateRead])
 async def list_rates(
     current_user: Annotated[object, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -22,7 +22,7 @@ async def list_rates(
     return result.scalars().all()
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=RateRead)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=RateRead)
 async def add_rate(
     rate_in: RateCreate,
     current_user: Annotated[object, Depends(get_current_admin)],

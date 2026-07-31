@@ -44,7 +44,7 @@ async def read_user_by_id(
     raise HTTPException(status_code=403, detail="Not enough permissions")
 
 
-@router.get("/", response_model=list[User])
+@router.get("", response_model=list[User])
 async def read_all_users(
     current_user: Annotated[DBUser, Depends(get_current_admin)],
     user_service: UserService = Depends(get_user_service)
@@ -54,7 +54,7 @@ async def read_all_users(
     return users
 
 
-@router.post("/", status_code=201, response_model=User)
+@router.post("", status_code=201, response_model=User)
 async def create_user(
     *,
     user_in: UserCreate,

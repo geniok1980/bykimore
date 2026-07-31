@@ -15,7 +15,7 @@ from app.schemas.iiko_settings import (
 router = APIRouter()
 
 
-@router.get("/", response_model=IikoSettingsRead | None)
+@router.get("", response_model=IikoSettingsRead | None)
 async def get_iiko_settings(
     current_admin: Annotated[object, Depends(get_current_admin)],
     db: AsyncSession = Depends(get_db),
@@ -25,7 +25,7 @@ async def get_iiko_settings(
     return settings
 
 
-@router.post("/", response_model=IikoSettingsRead)
+@router.post("", response_model=IikoSettingsRead)
 async def upsert_iiko_settings(
     payload: IikoSettingsCreate,
     current_admin: Annotated[object, Depends(get_current_admin)],

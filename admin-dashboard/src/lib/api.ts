@@ -188,7 +188,7 @@ export type Dish = { id: number; name: string };
 
 export async function getDishes(): Promise<Dish[]> {
   // Используем путь с завершающим слешом, чтобы избежать лишних редиректов FastAPI
-  return request<Dish[]>(`/dishes/`, { method: "GET" });
+  return request<Dish[]>(`/dishes`, { method: "GET" });
 }
 
 export async function deleteDish(dishId: number): Promise<void> {
@@ -199,7 +199,7 @@ export async function deleteDish(dishId: number): Promise<void> {
 // Создание блюда (админ). Можно передать начальную цену/курс.
 export async function createDish(args: { name: string; initial_price?: number | null; initial_rate?: number | null }): Promise<Dish> {
   const { name, initial_price = null, initial_rate = null } = args;
-  return request<Dish>(`/dishes/`, {
+  return request<Dish>(`/dishes`, {
     method: "POST",
     body: JSON.stringify({ name, initial_price, initial_rate }),
   });
@@ -220,11 +220,11 @@ export type User = {
 };
 
 export async function getAllUsers(): Promise<User[]> {
-  return request<User[]>("/users/", { method: "GET" });
+  return request<User[]>("/users", { method: "GET" });
 }
 
 export async function createUser(userData: UserCreateRequest): Promise<User> {
-  return request<User>("/users/", {
+  return request<User>("/users", {
     method: "POST",
     body: JSON.stringify(userData),
   });
@@ -251,7 +251,7 @@ export type BeerExchangeItemAPI = {
 };
 
 export async function getBeerExchangeItems(): Promise<BeerExchangeItemAPI[]> {
-  return request<BeerExchangeItemAPI[]>(`/beer-exchange/`, { method: "GET" });
+  return request<BeerExchangeItemAPI[]>(`/beer-exchange`, { method: "GET" });
 }
 
 // Prices API
@@ -263,7 +263,7 @@ export type PriceRead = {
 };
 
 export async function listPrices(): Promise<PriceRead[]> {
-  return request<PriceRead[]>(`/prices/`, { method: "GET" });
+  return request<PriceRead[]>(`/prices`, { method: "GET" });
 }
 
 // Beer Exchange Settings API
@@ -293,12 +293,12 @@ export type DishSettingsCreate = {
 };
 
 export async function listBeerExchangeSettings(): Promise<DishSettingsRead[]> {
-  return request<DishSettingsRead[]>(`/beer-exchange/settings/`, { method: "GET" });
+  return request<DishSettingsRead[]>(`/beer-exchange/settings`, { method: "GET" });
 }
 
 export async function upsertBeerExchangeSettings(body: DishSettingsCreate): Promise<DishSettingsRead> {
   // Admin-only endpoint on backend; relies on Authorization header
-  return request<DishSettingsRead>(`/beer-exchange/settings/`, {
+  return request<DishSettingsRead>(`/beer-exchange/settings`, {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -360,11 +360,11 @@ export type IikoSettingsCreate = {
 };
 
 export async function getIikoSettings(): Promise<IikoSettingsRead | null> {
-  return request<IikoSettingsRead | null>(`/iiko/settings/`, { method: "GET" });
+  return request<IikoSettingsRead | null>(`/iiko/settings`, { method: "GET" });
 }
 
 export async function upsertIikoSettings(body: IikoSettingsCreate): Promise<IikoSettingsRead> {
-  return request<IikoSettingsRead>(`/iiko/settings/`, { method: "POST", body: JSON.stringify(body) });
+  return request<IikoSettingsRead>(`/iiko/settings`, { method: "POST", body: JSON.stringify(body) });
 }
 
 export async function testIikoConnection(): Promise<{ status: string; mode?: string }> {
@@ -396,11 +396,11 @@ export type StreamSettingsCreate = {
 };
 
 export async function getStreamSettings(): Promise<StreamSettingsRead | null> {
-  return request<StreamSettingsRead | null>(`/stream-settings/`, { method: "GET" });
+  return request<StreamSettingsRead | null>(`/stream-settings`, { method: "GET" });
 }
 
 export async function upsertStreamSettings(body: StreamSettingsCreate): Promise<StreamSettingsRead> {
-  return request<StreamSettingsRead>(`/stream-settings/`, {
+  return request<StreamSettingsRead>(`/stream-settings`, {
     method: "POST",
     body: JSON.stringify(body),
   });

@@ -21,7 +21,7 @@ logger = setup_logger(__name__)
 router = APIRouter()
 
 
-@router.get("/", response_model=list[DishSettingsRead])
+@router.get("", response_model=list[DishSettingsRead])
 async def list_settings(
     current_user: Annotated[object, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -40,7 +40,7 @@ async def get_settings_by_dish(
     return res.scalars().first()
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=DishSettingsRead)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=DishSettingsRead)
 async def upsert_settings(
     settings_in: DishSettingsCreate,
     current_admin: Annotated[object, Depends(get_current_admin)],

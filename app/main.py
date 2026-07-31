@@ -66,6 +66,11 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     lifespan=lifespan,
+    # Без редиректов trailing slash: /dishes (без слеша) и /dishes/ (со слешем)
+    # обрабатываются строго по зарегистрированным роутам. Роуты теперь БЕЗ слеша,
+    # иначе 307-редирект с Location http://backend:8000/... ломает проксирование
+    # через Next.js rewrites (браузер не может достучаться до внутреннего адреса).
+    redirect_slashes=False,
 )
 
 if settings.BACKEND_CORS_ORIGINS:

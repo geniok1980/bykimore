@@ -12,14 +12,14 @@ from app.schemas.stream_settings import (
 router = APIRouter()
 
 
-@router.get("/", response_model=StreamSettingsRead | None)
+@router.get("", response_model=StreamSettingsRead | None)
 async def get_stream_settings(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(StreamSettings).order_by(StreamSettings.id.asc()))
     settings = result.scalars().first()
     return settings
 
 
-@router.post("/", response_model=StreamSettingsRead)
+@router.post("", response_model=StreamSettingsRead)
 async def upsert_stream_settings(payload: StreamSettingsCreate, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(StreamSettings).order_by(StreamSettings.id.asc()))
     settings = result.scalars().first()

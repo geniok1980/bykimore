@@ -13,7 +13,7 @@ from app.schemas.price import PriceCreate, PriceRead
 router = APIRouter()
 
 
-@router.get("/", response_model=list[PriceRead])
+@router.get("", response_model=list[PriceRead])
 async def list_prices(
     current_user: Annotated[object, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -22,7 +22,7 @@ async def list_prices(
     return result.scalars().all()
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=PriceRead)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=PriceRead)
 async def add_price(
     price_in: PriceCreate,
     current_user: Annotated[object, Depends(get_current_admin)],

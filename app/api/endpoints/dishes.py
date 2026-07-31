@@ -14,7 +14,7 @@ from app.schemas.dish import DishCreate, DishRead
 router = APIRouter()
 
 
-@router.get("/", response_model=list[DishRead])
+@router.get("", response_model=list[DishRead])
 async def list_dishes(
     # Для просмотра списка блюд достаточно быть аутентифицированным пользователем
     current_user: Annotated[object, Depends(get_current_user)],
@@ -25,7 +25,7 @@ async def list_dishes(
     return dishes
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=DishRead)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=DishRead)
 async def add_dish(
     dish_in: DishCreate,
     current_user: Annotated[object, Depends(get_current_admin)],

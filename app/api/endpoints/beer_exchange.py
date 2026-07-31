@@ -18,7 +18,7 @@ router = APIRouter()
 logger = setup_logger(__name__)
 
 
-@router.get("/", response_model=list[BeerExchangeItem])
+@router.get("", response_model=list[BeerExchangeItem])
 async def get_beer_exchange_items(
     current_user: Annotated[object, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
