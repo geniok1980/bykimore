@@ -297,7 +297,15 @@ async def sync_sales(
     now = dt.datetime.now(local_tz)
 
     try:
-        actual_from = dt.date.fromisoformat(date_from) if date_from else (now - dt.timedelta(days=30)).date()
+        actual_from = (
+            dt.date.fromisoformat(date_from)
+            if date_from
+            else (
+                dt.date.fromisoformat(settings.IIKO_SYNC_START_DATE)
+                if settings.IIKO_SYNC_START_DATE
+                else (now - dt.timedelta(days=30)).date()
+            )
+        )
     except ValueError:
         raise HTTPException(status_code=400, detail="date_from должен быть в формате YYYY-MM-DD")
 
@@ -365,11 +373,14 @@ async def _auto_sync_loop(app):
 async def auto_sync_start(
     current_admin: Annotated[object, Depends(get_current_admin)],
     request: Request,
-    date_from: str = Query(..., description="Начало периода автосинхронизации (YYYY-MM-DD)"),
+    date_from: str | None = Query(None, description="Начало периода автосинхронизации (YYYY-MM-DD). По умолчанию IIKO_SYNC_START_DATE"),
 ):
     """Запустить автоматическую синхронизацию каждые 5 минут."""
+    start = date_from or settings.IIKO_SYNC_START_DATE
+    if not start:
+        raise HTTPException(status_code=400, detail="Укажите date_from или IIKO_SYNC_START_DATE в .env")
     try:
-        parsed_from = dt.date.fromisoformat(date_from)
+        parsed_from = dt.date.fromisoformat(start)
     except ValueError:
         raise HTTPException(status_code=400, detail="date_from должен быть в формате YYYY-MM-DD")
 

@@ -104,6 +104,9 @@ class Settings(BaseSettings):
 
     # OLAP пресет и параметры фонового цикла динамического ценообразования
     IIKO_OLAP_PRESET_ID: str | None = None
+    # Дата начала работы ресторана (YYYY-MM-DD) — с неё считается полный счётчик продаж
+    # при ручной синхронизации и в автосинхронизации (5 мин)
+    IIKO_SYNC_START_DATE: str | None = None
     SALES_PRICING_LOOP_INTERVAL_SECONDS: int | None = 60
     # Ограничение частоты обращений к OLAP: минимальный TTL кэша результатов
     SALES_OLAP_REFRESH_INTERVAL_SECONDS: int | None = None
