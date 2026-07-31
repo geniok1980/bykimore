@@ -29,10 +29,12 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
+    // BACKEND_URL уже содержит /api/v1, поэтому source матчим начиная с /api/v1,
+    // иначе путь дублируется (/api/v1/v1/...) и backend отвечает 404.
     return [
       {
-        source: '/api/:path*',
-        destination: `${process.env.BACKEND_URL || 'http://localhost:8000/api/v1'}/:path*`,
+        source: '/api/v1/:path*',
+        destination: `${process.env.BACKEND_URL || 'http://backend:8000/api/v1'}/:path*`,
       },
     ];
   },

@@ -47,8 +47,8 @@ services:
     image: node:18-alpine
     container_name: iiko_frontend
     environment:
-      # Публичный URL для браузера — из .env или дефолт
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8001/api/v1}
+      # Публичный URL для браузера — относительный (тот же origin, чтобы не было mixed content)
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api/v1}
       # Внутренний URL для серверных вызовов фронта
       BACKEND_URL: http://backend:8000/api/v1
       NODE_ENV: production
@@ -62,7 +62,7 @@ services:
       - backend
     healthcheck:
       # В alpine может не быть curl, используем node с fetch
-      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/bull-and-sea').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
       interval: 30s
       timeout: 10s
       retries: 3
