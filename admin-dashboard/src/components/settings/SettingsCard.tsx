@@ -168,13 +168,29 @@ export default function SettingsCard({ modalProps }: { modalProps: ModalProps })
       const weightGrams = Number(weightGramsRef.current?.value || 0);
       try {
         let selectedDish = dishes.find(d => d.name === dishName) || dishes.find(d => d.id === currentItem.dishId) || null;
-        if (!selectedDish && selectedIikoProduct && (selectedIikoProduct.name || "") === dishName) {
-          const created = await createDish({ name: selectedIikoProduct.name || dishName, initial_price: selectedIikoProduct.price ?? undefined });
-          selectedDish = created;
-          setDishes(prev => [...prev, created]);
+        if (!selectedDish) {
+          // Если блюдо не выбрано из выпадающего списка — ищем точное совпадение по имени среди iiko-продуктов
+          // (чтобы «Сохранить» срабатывало с первого раза, даже если пользователь просто ввёл название)
+          const normName = dishName.trim().toLowerCase();
+          const matches = iikoProducts.filter((p) => (p.name || "").trim().toLowerCase() === normName);
+          let product = selectedIikoProduct;
+          if (!product && matches.length === 1) {
+            product = matches[0];
+            setSelectedIikoProduct(product);
+          }
+          if (product && (product.name || "").trim().toLowerCase() === normName) {
+            const created = await createDish({
+              name: product.name || dishName,
+              product_id: product.id ?? null,
+              initial_price: product.price ?? undefined,
+            });
+            selectedDish = created;
+            setDishes(prev => [...prev, created]);
+          }
         }
         if (!selectedDish) {
-          setErrors((prev: typeof errors) => ({ ...prev, dish: "Выберите блюдо из списка или из iiko" }));
+          const manyMatches = iikoProducts.filter((p) => (p.name || "").trim().toLowerCase() === dishName.trim().toLowerCase()).length > 1;
+          setErrors((prev: typeof errors) => ({ ...prev, dish: manyMatches ? "Найдено несколько блюд — выберите нужное из списка" : "Выберите блюдо из списка или из iiko" }));
           return;
         }
         const updated = await upsertBeerExchangeSettings({
