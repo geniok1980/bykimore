@@ -47,7 +47,7 @@ _NOMENCLATURE_TTL = 600     # 10 minutes
 _STOPLIST_TTL = int(settings.IIKO_STOPLIST_REFRESH_INTERVAL_MINUTES or 0) * 60 or 45
 _COOLDOWN_SECONDS = 120     # 2 minutes cool-down on 429 Too Many Requests
 
-# Shared disk-backed cache (to bridge multiple processes like API server and fetcher script)
+# Shared disk-backed cache (to bridge multiple processes like API server and webhook workers)
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 _STOPLIST_CACHE_FILE = _PROJECT_ROOT / "storage" / "stoplist_cache.json"
 _STOPLIST_DISK_TTL = 300  # 5 minutes TTL for disk cache

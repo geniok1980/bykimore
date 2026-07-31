@@ -32,7 +32,7 @@ bykimore/
 ├── admin-dashboard/        # Next.js frontend
 ├── docker-compose.yml      # Backend + Frontend
 ├── Dockerfile.backend
-└── Dockerfile.fetcher
+└── (Dockerfile.fetcher удалён — скрипт записи цен в iiko убран)
 ```
 
 ## Настройка .env
