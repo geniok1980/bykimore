@@ -67,6 +67,8 @@ async def _run_sync(
     preset_id = settings.IIKO_OLAP_PRESET_ID
     # Читаем host из БД
     iiko_host = ""
+    iiko_login = ""
+    iiko_password = ""
     try:
         async with db_session_factory() as db:
             from app.models.iiko_settings import IikoSettings
@@ -75,6 +77,8 @@ async def _run_sync(
             stored = result.scalars().first()
             if stored and stored.server_host:
                 iiko_host = stored.server_host.rstrip("/")
+                iiko_login = stored.server_login or ""
+                iiko_password = stored.server_password or ""
     except Exception:
         pass
     if not preset_id or not iiko_host:
@@ -97,6 +101,10 @@ async def _run_sync(
         # 2. Авторизация в iikoServer
         mgr = get_iiko_server_auth_manager()
         try:
+            base_url = iiko_host
+            if base_url.lower().endswith("/resto"):
+                base_url = base_url[: -len("/resto")]
+            mgr.configure(base_url, iiko_login, iiko_password)
             await mgr.ensure_authenticated()
         except Exception as e:
             return {"updated": 0, "total": len(rows), "error": f"Ошибка авторизации iikoServer: {e}"}
@@ -108,40 +116,41 @@ async def _run_sync(
         if base.lower().endswith("/resto"):
             base = base[: -len("/resto")]
 
-        # 3. Запросить веса из assemblyCharts для каждого блюда
+        # 3. Запросить веса из номенклатуры (unitWeight — вес одной единицы в кг)
         weight_results: dict[int, int] = {}
 
-        async def fetch_weight(dish: Dish) -> tuple[int, int]:
-            pid = str(dish.product_id)
-            url = f"{base}/resto/api/v2/assemblyCharts/byId"
-            params: dict = {"id": pid}
+        pid_list = [str(dish.product_id) for _, dish in rows]
+        if pid_list:
+            url = f"{base}/resto/api/v2/entities/products/list"
+            params: dict = {"ids": pid_list}
             if session_key:
                 params["key"] = session_key
             try:
-                resp = await client.get(url, params=params, timeout=30)
+                resp = await client.get(url, params=params, timeout=60)
                 if resp.status_code == 200:
                     data = resp.json()
-                    comment = data.get("outputComment")
-                    grams = _parse_output_comment_weight(comment)
-                    if grams > 0:
-                        return (dish.id, grams)
-                    logger.warning(
-                        "assemblyCharts dish=%s product=%s: outputComment='%s' не распознан",
-                        dish.id, pid, comment,
-                    )
+                    pid_to_grams: dict[str, int] = {}
+                    for item in data if isinstance(data, list) else []:
+                        pid = str(item.get("id") or "")
+                        uw = item.get("unitWeight")
+                        if pid and isinstance(uw, (int, float)) and uw > 0:
+                            pid_to_grams[pid] = max(1, int(round(uw * 1000)))
+                    for _settings_row, dish in rows:
+                        pid = str(dish.product_id)
+                        grams = pid_to_grams.get(pid, 0)
+                        weight_results[dish.id] = grams
+                        if grams == 0:
+                            logger.warning(
+                                "Вес не найден для dish=%s product=%s (unitWeight отсутствует)",
+                                dish.id, pid,
+                            )
                 else:
                     logger.warning(
-                        "assemblyCharts dish=%s product=%s: HTTP %s",
-                        dish.id, pid, resp.status_code,
+                        "Номенклатура (веса) HTTP %s: %s",
+                        resp.status_code, resp.text[:300],
                     )
             except Exception as e:
-                logger.warning("Ошибка assemblyCharts dish=%s product=%s: %s", dish.id, pid, e)
-            return (dish.id, 0)
-
-        tasks = [fetch_weight(dish) for _, dish in rows]
-        results = await asyncio.gather(*tasks)
-        for dish_id, grams in results:
-            weight_results[dish_id] = grams
+                logger.warning("Ошибка запроса номенклатуры (веса): %s", e)
 
         # 4. Маппинг названия блюда -> dish_id
         dish_name_to_id: dict[str, int] = {}
