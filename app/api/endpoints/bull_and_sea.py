@@ -300,6 +300,11 @@ async def sync_sales(
     if actual_from >= actual_to:
         actual_from = actual_to - dt.timedelta(days=1)
 
+    if not hasattr(request.app.state, "db_session_factory"):
+        from app.db.session import AsyncSessionLocal
+
+        request.app.state.db_session_factory = AsyncSessionLocal
+
     result = await _run_sync(
         db_session_factory=request.app.state.db_session_factory,
         date_from=actual_from,
