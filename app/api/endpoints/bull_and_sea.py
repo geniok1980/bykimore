@@ -451,7 +451,15 @@ async def _auto_sync_loop(app):
             today_map = await _read_today_sales(app, today, date_to)
             # Прошлый last_today (продажи за последний обработанный день — вчера или сегодня)
             # уже учтён в счётчике: вычитаем его и добавляем текущие продажи за сегодня.
-            last_values = last.get("values", {})
+            # ВАЖНО: если день сменился — НЕ вычитаем вчерашние продажи, т.к. они уже в
+            # накопленном счётчике. Вычитаем только если last_date == today (внутри одного дня).
+            last_date = last.get("date", "")
+            if last_date == today.isoformat():
+                last_values = last.get("values", {})
+            else:
+                # День сменился — начинаем с чистого листа, не вычитая вчерашние продажи
+                last_values = {}
+                logger.info("auto-sync: смена дня (%s → %s), сброс last_values", last_date, today)
 
             dish_ids = set(list(last_values.keys()) + list(today_map.keys()))
             incremental = {

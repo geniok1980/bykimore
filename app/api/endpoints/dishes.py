@@ -40,7 +40,7 @@ async def add_dish(
         )
 
     try:
-        dish = Dish(name=dish_in.name)
+        dish = Dish(name=dish_in.name, product_id=dish_in.product_id)
         db.add(dish)
         # Получим id, не коммитя транзакцию
         await db.flush()
